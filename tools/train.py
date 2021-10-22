@@ -20,7 +20,7 @@ from models.Mobilenet import mobilenet_v2
 
 def arg_define():
     parser = argparse.ArgumentParser(description='Classification model train')
-    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/nh_bs1024.yml', help='path of cfg file')
+    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/nh_bs256.yml', help='path of cfg file')
     args = parser.parse_args()
     return args
 
@@ -41,11 +41,13 @@ class Trainer(object):
                                 world_size=self.args.ddp.WORLD_SIZE)
 
     def load_device(self):
+        if self.args.ddp.LOCAL_RANK in [0, -1]:
+            log.info("=> load gpu device")
         if self.args.USE_DDP:
-            if self.args.ddp.LOCAL_RANK in [0, -1]:
-                log.info("=> load gpu device")
             torch.cuda.set_device(self.args.ddp.LOCAL_RANK)
             self.device = self.args.ddp.LOCAL_RANK
+        else:
+            self.device = torch.device('cuda')
         return self
 
     def load_model(self):
@@ -54,6 +56,8 @@ class Trainer(object):
         model = eval(f"{self.args.model.model_name}({self.args.model})")
         if self.args.USE_DDP:
             self.model = DDP(model.cuda(self.device), device_ids=[self.device], output_device=self.device, find_unused_parameters=True)
+        else:
+            self.model = model.to(self.device)
         return self
 
     def load_optim(self):
@@ -75,7 +79,8 @@ class Trainer(object):
         best_loss = 100
 
         for epoch in range(1, epochs+1):
-            train_sampler.set_epoch(epoch)
+            if train_sampler is not None:
+                train_sampler.set_epoch(epoch)
             if self.args.ddp.LOCAL_RANK in [0, -1]:
                 log.info(f"TRAIN | Epoch: [{epoch}/{epochs}] | LR: {self.optimizer.param_groups[0]['lr']:.3f} \n")
             train_loss, train_prec = train_one_epoch(train_dataloader, self.model, self.optimizer, self.device,
@@ -118,7 +123,6 @@ def main_worker(local_rank, nprocs, cfg, train_dataiter, val_dataiter, log_path)
     if local_rank in [-1, 0]:
         logzero.logfile(log_path, maxBytes=1e6, backupCount=3)
 
-    log.info(f"this is {local_rank}")
     trainer = Trainer(cfg)
     train_sampler, train_dataloader = create_dataloader(cfg, train_dataiter, cfg.ddp.LOCAL_RANK)
     if local_rank in [-1, 0]:
@@ -133,7 +137,6 @@ if __name__ == "__main__":
     args = arg_define()
     cfg = read_yml(args.yml)
     cfg, log_path = create_log_dir(cfg)
-    os.environ['CUDA_VISIBLE_DEVICES'] = cfg.DEVICE_IDS
     torch.backends.cudnn.benchmark = True
 
     log.info("=> load data")
@@ -142,7 +145,17 @@ if __name__ == "__main__":
     val_dataiter = DataIter(cfg, dataset.val, is_train=False)
     if cfg.USE_DDP:
         cfg.ddp.NPROCS = len(cfg.DEVICE_IDS.split(","))
+        if cfg.ddp.NPROCS > 1:
+            os.environ['CUDA_VISIBLE_DEVICES'] = cfg.DEVICE_IDS
+        else:
+            raise RuntimeError("In ddp mode, u r supposed to use multiple gpus. Change param DEVICE_IDS in yaml.")
         mp.spawn(main_worker, nprocs=cfg.ddp.NPROCS, args=(cfg.ddp.NPROCS, cfg, train_dataiter, val_dataiter, log_path))
     else:
-        print("train_ddp is train with ddp mode, use train and turn off ddp mode if only have single GPU ")
+        if len(cfg.DEVICE_IDS) == 1:
+            os.environ['CUDA_VISIBLE_DEVICES'] = cfg.DEVICE_IDS
+        else:
+            raise RuntimeError("In commom mode, u r supposed to use single gpu. Change param DEVICE_IDS in yaml.")
+        os.environ['CUDA_VISIBLE_DEVICES'] = cfg.DEVICE_IDS
+        main_worker(-1, 1, cfg, train_dataiter, val_dataiter, log_path)
+
 

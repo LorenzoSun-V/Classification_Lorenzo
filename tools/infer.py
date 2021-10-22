@@ -51,7 +51,10 @@ def eval_softmax(model, loader, test_imgs_num, num_classes):
 if __name__ == "__main__":
     args = arg_define()
     cfg = read_yml(args.yml)
-    os.environ['CUDA_VISIBLE_DEVICES'] = cfg.test.gpu
+    if len(cfg.test.gpu) == 1:
+        os.environ['CUDA_VISIBLE_DEVICES'] = cfg.test.gpu
+    else:
+        raise RuntimeError("please use single gpu, change yaml file param: test.gpu")
 
     dataset = LoadImgLabel(cfg, cfg.test.test_dir)
     test_dataiter = DataIter(cfg, dataset.total, is_train=False)
