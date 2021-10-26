@@ -54,7 +54,7 @@
 
 - Using single GPU:
     
-　　modify yaml file path in [tools/train.py](https://github.com/Gakkkkkki/Classification_Lorenzo/blob/master/tools/train.py) as './cfg/mobilenet_v2/intel_bs256.yml' and run train.py in IDE.
+　　modify yaml file path in [tools/train.py](https://github.com/Gakkkkkki/Classification_Lorenzo/blob/master/tools/train.py) as '../cfg/mobilenet_v2/intel_bs256.yml' and run train.py in IDE.
 
 　　or run in terminal directly:
 ```terminal
@@ -62,13 +62,13 @@
 ```
 - Using multiple GPUs(DDP train mode):
 
-　　modify yaml file path in [tools/train.py](https://github.com/Gakkkkkki/Classification_Lorenzo/blob/master/tools/train.py) as './cfg/mobilenet_v2/intel_bs1024.yml' and run train.py in IDE.
+　　modify yaml file path in [tools/train.py](https://github.com/Gakkkkkki/Classification_Lorenzo/blob/master/tools/train.py) as '../cfg/mobilenet_v2/intel_bs1024.yml' and run train.py in IDE.
 
 4. Infer (Use absolute path if have any path error)
 
 　　modify test.model_path as your weights path in yaml file you use.　
     
-　　modify yaml file path in [tools/infer.py](https://github.com/Gakkkkkki/Classification_Lorenzo/blob/master/tools/infer.py) as './cfg/mobilenet_v2/intel_bs256.yml' and run infer.py
+　　modify yaml file path in [tools/infer.py](https://github.com/Gakkkkkki/Classification_Lorenzo/blob/master/tools/infer.py) as '../cfg/mobilenet_v2/intel_bs256.yml' and run infer.py
 
 　　or run in terminal directly:
 ```terminal
