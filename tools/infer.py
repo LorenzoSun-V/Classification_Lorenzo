@@ -9,18 +9,18 @@ from data_iter.load_img_label import LoadImgLabel
 from data_iter.dataset_iter import DataIter, create_dataloader
 
 
-label = {'0': 'bank_staff_vest', '1': 'cleaner', '2': 'money_staff', '3': 'person', '4': 'security_staff', '5': 'bank_staff_shirt', '6': 'bank_staff_coat'}
-folders = ['test']
+label_nh = {'0': 'bank_staff_vest', '1': 'cleaner', '2': 'money_staff', '3': 'person', '4': 'security_staff', '5': 'bank_staff_shirt', '6': 'bank_staff_coat'}
+label_intel = {"0": "buildings", "1": "forest", "2": "glacier", "3": "mountain", "4": "sea", "5": "street"}
 
 
 def arg_define():
     parser = argparse.ArgumentParser(description='Classification model train')
-    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/nh_bs1024.yml', help='path of cfg file')
+    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/intel_bs1024.yml', help='path of cfg file')
     args = parser.parse_args()
     return args
 
 
-def eval_softmax(model, loader, test_imgs_num, num_classes):
+def eval_softmax(model, loader, test_imgs_num, num_classes, label):
     model.eval()
     running_corrects = 0
     confusion_matrix = np.zeros((num_classes, num_classes)).astype(np.uint16)
@@ -70,7 +70,13 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if use_cuda else "cpu")
     model_ = model_.to(device)
     model_.eval()
-
-    eval_softmax(model_, test_dataloader, len(dataset.total), num_classes=cfg.model.num_classes)
+    task_name = cfg.dataset.task_name
+    if task_name == "intel":
+        label = label_intel
+    elif task_name == "nh":
+        label = label_nh
+    else:
+        raise RuntimeError('Unsupported task name right now')
+    eval_softmax(model_, test_dataloader, len(dataset.total), cfg.model.num_classes, label)
 
 

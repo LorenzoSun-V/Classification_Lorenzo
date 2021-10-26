@@ -50,6 +50,17 @@ def checkfolder(paths):
             log.info("Created new directory in %s" % paths)
 
 
+def checkbntype(cfg):
+    if cfg.USE_DDP:
+        if cfg.model.bn == "bn":
+            log.info('DDP mode is suggested to use syncbn type.')
+    else:
+        if cfg.model.bn == "syncbn":
+            log.info('Common mode is suggested to use bn type. Have modified automatically.')
+            cfg.model.bn = "bn"
+    return cfg
+
+
 def read_yml(yml_file):
     with open(yml_file) as f:
         cfg = edict(yaml.safe_load(f))

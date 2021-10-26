@@ -214,7 +214,13 @@ def mobilenet_v2(cfg):
     """
     cfg = edict(cfg)
     criterion = choose_loss(cfg.loss, cfg.num_classes)
-    model = MobileNetV2(num_classes=cfg.num_classes, width_mult=1.0, criterion=criterion)
+    if cfg.bn == 'bn':
+        norm_layer = None
+    elif cfg.bn == 'syncbn':
+        norm_layer = nn.SyncBatchNorm
+    else:
+        raise RuntimeError('Unknown bn type, check param model.bn in yaml. Only support bn and syncbn')
+    model = MobileNetV2(num_classes=cfg.num_classes, width_mult=1.0, criterion=criterion, norm_layer=norm_layer)
     if cfg.pretrained:
         # 加载在ImageNet上预训练的参数
         load_weights(model, cfg.pretrained_model_url)

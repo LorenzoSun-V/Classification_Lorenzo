@@ -1,0 +1,59 @@
+SEED: 666 # random seed for reproduce results
+DEVICE_IDS: '0,1,2,3'
+USE_DDP: True
+LOG_DIR: ""
+RELOAD_PTH: ~
+
+ONE_HOT: False
+
+dataset:
+    model_exp: '../model_exp'
+    task_name: 'intel'
+    train_dir: "../datasets/intel/seg_train"
+    train_val_split: True
+    train_val_split_ratio: 0.1
+
+aug:
+    is_aug: True
+    SCALE: 1.125
+    HW: [150, 150]
+    HFLIP: True
+    COLOR_JITTER: True
+    ROTATE: 10  # [0, ROTATE) Random Rotate
+    CROP: True
+
+model:
+    model_name: 'mobilenet_v2'
+    pretrained: False
+    pretrained_model_url: ""
+    last_channels: 1280
+    num_classes: 6
+    bn: 'syncbn'
+    loss: 'focal'
+
+ddp:
+    WORLD_SIZE: 1
+    RANK: 0
+    LOCAL_RANK: 0
+    DIST_BACKEND: 'nccl' # 'nccl', 'gloo'
+    DIST_URL: 'tcp://127.0.0.1:23456'  # "env://"
+    NUM_WORKERS: 8
+    NPROCS: 4
+
+train:
+    optim: 'sgd'
+    base_lr: 0.1
+    # base_lr: 0.03
+    warmup_cosdecay: 10  # epoch of warm up
+    total_epochs: 120
+    batch_size: 1024
+    load_model: False
+    model_file: ""
+    print_freq: 10
+    checkpoint_epochs: [50,100,]
+
+test:
+    test_dir : "../datasets/intel/seg_test/"
+    model_path: "../model_exp/mobilenet_v2/intel/2021-10-26_15-19-13/model_best_acc.pth"
+    gpu: '4'
+    batch_size: 128

@@ -1,6 +1,5 @@
 import argparse
 import os
-
 import torch
 import torch.multiprocessing as mp
 import torch.distributed as dist
@@ -20,7 +19,7 @@ from models.Mobilenet import mobilenet_v2
 
 def arg_define():
     parser = argparse.ArgumentParser(description='Classification model train')
-    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/nh_bs256.yml', help='path of cfg file')
+    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/intel_bs1024.yml', help='path of cfg file')
     args = parser.parse_args()
     return args
 
@@ -88,7 +87,7 @@ class Trainer(object):
                                                      self.args.ddp.LOCAL_RANK)
             self.scheduler.step()
             if val_dataloader is not None:
-                print(f"this is process {self.args.ddp.LOCAL_RANK} do validation")
+                # print(f"this is process {self.args.ddp.LOCAL_RANK} do validation")
                 val_loss, val_prec = val_one_epoch(val_dataloader, self.model, self.device, self.args.ONE_HOT, self.args.ddp.LOCAL_RANK)
 
                 acc_is_best = val_prec >= best_acc
@@ -136,6 +135,7 @@ def main_worker(local_rank, nprocs, cfg, train_dataiter, val_dataiter, log_path)
 if __name__ == "__main__":
     args = arg_define()
     cfg = read_yml(args.yml)
+    cfg = checkbntype(cfg)
     cfg, log_path = create_log_dir(cfg)
     torch.backends.cudnn.benchmark = True
 
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         if len(cfg.DEVICE_IDS) == 1:
             os.environ['CUDA_VISIBLE_DEVICES'] = cfg.DEVICE_IDS
         else:
-            raise RuntimeError("In commom mode, u r supposed to use single gpu. Change param DEVICE_IDS in yaml.")
+            raise RuntimeError("In common mode, u r supposed to use single gpu. Change param DEVICE_IDS in yaml.")
         os.environ['CUDA_VISIBLE_DEVICES'] = cfg.DEVICE_IDS
         main_worker(-1, 1, cfg, train_dataiter, val_dataiter, log_path)
 
