@@ -19,7 +19,7 @@ from models.Mobilenet import mobilenet_v2
 
 def arg_define():
     parser = argparse.ArgumentParser(description='Classification model train')
-    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/intel_bs1024.yml', help='path of cfg file')
+    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/nh_bs256.yml', help='path of cfg file')
     args = parser.parse_args()
     return args
 
@@ -75,9 +75,10 @@ class Trainer(object):
 
     def run(self, epochs, train_sampler, train_dataloader, val_dataloader):
         best_acc = 0
-        best_loss = 100
+        best_loss = np.inf
 
         for epoch in range(1, epochs+1):
+            # the parameter of Dataloader 'shuffle' needs to use 'set_epoch' function
             if train_sampler is not None:
                 train_sampler.set_epoch(epoch)
             if self.args.ddp.LOCAL_RANK in [0, -1]:
@@ -140,7 +141,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.benchmark = True
 
     log.info("=> load data")
-    dataset = LoadImgLabel(cfg, cfg.dataset.train_dir)
+    dataset = LoadImgLabel(cfg)
     train_dataiter = DataIter(cfg, dataset.train, is_train=True)
     val_dataiter = DataIter(cfg, dataset.val, is_train=False)
     if cfg.USE_DDP:

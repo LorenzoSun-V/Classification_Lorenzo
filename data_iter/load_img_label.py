@@ -8,10 +8,12 @@ from torch.utils.data import Dataset
 
 
 class LoadImgLabel(Dataset):
-    def __init__(self, args, img_dir):
+    def __init__(self, args):
         super(Dataset, self).__init__()
         self.args = args
-        img_dir = Path(img_dir)
+        img_dir = Path(args.dataset.train_dir)
+        if not args.dataset.train_val_split:
+            args.dataset.train_val_split_ratio = 0
         self._check_path([img_dir])
         self.total = self._loadGT(img_dir)
         self.train, self.val = self._train_val_split(self.total, split_ratio=args.dataset.train_val_split_ratio)

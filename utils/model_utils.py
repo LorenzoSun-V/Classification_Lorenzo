@@ -185,7 +185,7 @@ def load_weights(model: nn.Module, model_url: str):
         print(f'Error: The pretrained weights from "{model_url}" cannot be loaded')
         exit(0)
     else:
-        print(f'Successfully loaded imagenet pretrained weights from {model_url}')
+        print(f'Successfully loaded weights from {model_url}')
         if len(discarded_layers) > 0:
             print('** The following layers are discarded '
                 f'due to unmatched keys or layer size: {discarded_layers}')
@@ -225,9 +225,18 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
 
 
 if __name__ == "__main__":
-    # train_img, train_mask, val_img, val_mask = train_val_split("/mnt/shy/sjh/YOLOP-main/hedao_image_30", "/mnt/shy/sjh/YOLOP-main/hedao_image_30_mask", 0.1)
-    lambda1 = cal_lr_lambda(120, 10)
-    print(lambda1(10))
+    cm = np.array([[30458,0,0,110,6,37,8],
+                    [0,4217,0,3,0,0,0],
+                     [2,0,3103,0,0,0,0],
+                     [3,2,4,12262,6,88,1],
+                     [3,1,0,25,15247,0,0],
+                     [0,0,0,0,0,0,0],
+                     [0,0,0,0,0,0,0]])
+    label = {'0': 'bank_staff_vest', '1': 'cleaner', '2': 'money_staff', '3': 'person', '4': 'security_staff',
+                '5': 'bank_staff_shirt', '6': 'bank_staff_coat'}
+    label_class = [label[i] for i in label]
+    plot_confusion_matrix(cm, label_class)
+
 
 
 

@@ -11,13 +11,14 @@ from .aug import *
 
 
 class DataIter(Dataset):
-    def __init__(self, args, dataset, is_train=True):
+    def __init__(self, args, dataset, is_train=True, is_cal_std=False):
         super(DataIter, self).__init__()
         self.args = args
         self.dataset = dataset
         self.img_paths = [i[0] for i in dataset]
         self.transform = []
         self.is_train = is_train
+        self.is_cal_std = is_cal_std
         if is_train:
             if args.aug.is_aug:
                 if args.aug.COLOR_JITTER:
@@ -55,7 +56,10 @@ class DataIter(Dataset):
         # if not self.is_train:
         #     save_img_path = f"/mnt/shy/sjh/test_aug/aug/{index}_{self.args.ddp.LOCAL_RANK}.jpg"
         #     cv2.imwrite(save_img_path, img)
-        img_scaler = (img / 255 - 0.5) / 0.5
+        if not self.is_cal_std:
+            img_scaler = (img / 255 - 0.5) / 0.5
+        else:
+            img_scaler = img
         img_trans = img_scaler.transpose(2, 0, 1).astype(np.float32)
         img_tensor = torch.from_numpy(img_trans)
 
