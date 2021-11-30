@@ -5,6 +5,7 @@ import torch.utils.model_zoo as model_zoo
 from easydict import EasyDict as edict
 from models.load_weights import load_weights
 from loss.loss import *
+# from utils.loss import *
 from collections import OrderedDict
 
 __all__ = ['MobileNetV2', 'mobilenet_v2']
@@ -204,7 +205,7 @@ class MobileNetV2(nn.Module):
             return self.forward_test(x)
 
 
-def mobilenet_v2(cfg):
+def mobilenet_v2(cfg, weight):
     """
     Constructs a MobileNetV2 architecture from
     `"MobileNetV2: Inverted Residuals and Linear Bottlenecks" <https://arxiv.org/abs/1801.04381>`_.
@@ -213,7 +214,8 @@ def mobilenet_v2(cfg):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     cfg = edict(cfg)
-    criterion = choose_loss(cfg.loss, cfg.num_classes)
+    criterion = ClassificationLosses(weight=weight, cuda=torch.cuda.is_available()).build_loss(mode=cfg.loss)
+    # criterion = FocalLoss(num_class=8)
     if cfg.bn == 'bn':
         norm_layer = None
     elif cfg.bn == 'syncbn':
@@ -229,9 +231,11 @@ def mobilenet_v2(cfg):
 
 if __name__ == "__main__":
     from utils.model_utils import read_yml
+    import numpy as np
     cfg = read_yml('/mnt/shy/sjh/classify_model/cfg/mobilenet_v2/nh_bs1024.yml')
-    input = torch.randn([4, 3, 192, 192])
-    gt_ = torch.from_numpy(np.array([1, 2, 4, 5]))
-    model = mobilenet_v2(cfg.model)
-    output = model(input)
+    cfg.model.bn = 'bn'
+    input = torch.randn([4, 3, 192, 192]).cuda()
+    gt_ = torch.from_numpy(np.array([1, 2, 4, 5])).cuda()
+    model = mobilenet_v2(cfg.model, weight=None).cuda()
+    output = model(input, gt_)
     print(output)

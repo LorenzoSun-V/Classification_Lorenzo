@@ -1,14 +1,13 @@
 import sysconfig
-
+import torch.nn.functional as F
 import torch.nn as nn
 import math
 import torch
 import torch.utils.model_zoo as model_zoo
 from easydict import EasyDict as edict
 from models.load_weights import load_weights
-from loss.loss import *
+# from loss.loss import ClassificationLosses
 from collections import OrderedDict
-
 __all__ = ['MobileNetV2', 'mobilenet_v2']
 
 model_urls = {
@@ -196,7 +195,7 @@ class MobileNetV2(nn.Module):
         return self._forward_impl(x)
 
 
-def mobilenet_v2(cfg):
+def mobilenet_v2(cfg, weight):
     """
     Constructs a MobileNetV2 architecture from
     `"MobileNetV2: Inverted Residuals and Linear Bottlenecks" <https://arxiv.org/abs/1801.04381>`_.
@@ -205,14 +204,14 @@ def mobilenet_v2(cfg):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     cfg = edict(cfg)
-    criterion = choose_loss(cfg.loss, cfg.num_classes)
+    # criterion = ClassificationLosses(weight=weight, cuda=torch.cuda.is_available()).build_loss(mode=cfg.loss)
     if cfg.bn == 'bn':
         norm_layer = None
     elif cfg.bn == 'syncbn':
         norm_layer = nn.SyncBatchNorm
     else:
         raise RuntimeError('Unknown bn type, check param model.bn in yaml. Only support bn and syncbn')
-    model = MobileNetV2(num_classes=cfg.num_classes, width_mult=1.0, criterion=criterion, norm_layer=norm_layer)
+    model = MobileNetV2(num_classes=cfg.num_classes, width_mult=1.0, norm_layer=norm_layer)
     if cfg.pretrained:
         # 加载在ImageNet上预训练的参数
         load_weights(model, cfg.pretrained_model_url)

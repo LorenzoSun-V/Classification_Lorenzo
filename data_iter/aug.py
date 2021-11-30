@@ -1,6 +1,7 @@
 import random
 import cv2
 import numpy as np
+import torch.nn
 
 
 class ColorJitter(object):

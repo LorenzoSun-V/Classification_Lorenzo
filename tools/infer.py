@@ -9,7 +9,7 @@ from data_iter.load_img_label import LoadImgLabel
 from data_iter.dataset_iter import DataIter, create_dataloader
 
 
-label_nh = {'0': 'bank_staff_vest', '1': 'cleaner', '2': 'money_staff', '3': 'person', '4': 'security_staff', '5': 'bank_staff_shirt', '6': 'bank_staff_coat'}
+label_nh = {'0': 'bank_staff_vest', '1': 'cleaner', '2': 'money_staff', '3': 'person', '4': 'security_staff', '5': 'bank_staff_shirt', '6': 'bank_staff_coat', '7': 'security_staff_black'}
 label_intel = {"0": "buildings", "1": "forest", "2": "glacier", "3": "mountain", "4": "sea", "5": "street"}
 label_shyh = {'0': 'bank_staff_summer', '1': 'bank_staff_fall', '2': 'custom', '3': 'security_staff'}
 label_shsq = {'0': 'person', '1': 'fall_person', '2': 'crouch_person'}
@@ -17,7 +17,7 @@ label_shsq = {'0': 'person', '1': 'fall_person', '2': 'crouch_person'}
 
 def arg_define():
     parser = argparse.ArgumentParser(description='Classification model train')
-    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/nh_bs1024.yml', help='path of cfg file')
+    parser.add_argument('--yml', type=str, default='../cfg/mobilenet_v2/intel_bs1024.yml', help='path of cfg file')
     args = parser.parse_args()
     return args
 
@@ -59,13 +59,13 @@ if __name__ == "__main__":
         raise RuntimeError("please use single gpu, change yaml file param: test.gpu")
 
     dataset = LoadImgLabel(cfg, cfg.test.test_dir)
-    test_dataiter = DataIter(cfg, dataset.total, is_train=False)
+    test_dataiter = DataIter(cfg.aug, dataset.total, split="val")
     test_dataloader = DataLoader(test_dataiter,
                                  batch_size=cfg.test.batch_size,
                                  pin_memory=True,
                                  shuffle=False)
-
-    model_ = eval(f"{cfg.model.model_name}({cfg.model})")
+    weight = None
+    model_ = eval(f"{cfg.model.model_name}({cfg.model}, weight)")
     load_weights(model_, cfg.test.model_path)
 
     use_cuda = torch.cuda.is_available()

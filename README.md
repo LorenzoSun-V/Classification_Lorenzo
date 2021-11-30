@@ -74,3 +74,11 @@
 ```terminal
 　python tools/infer.py --yml ./cfg/mobilenet_v2/intel_bs256.yml
 ```
+
+5. Use TensorboardX
+
+```terminal
+  tensorboard --logdir=log_dir
+```
+   
+   TensorBoard 2.6.0 at http://localhost:6006/

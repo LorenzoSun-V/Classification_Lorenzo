@@ -98,7 +98,7 @@ def create_log_dir(cfg):
         # create folder saving log files and pth files adaptively via model_exp & model_name & task_name
         # path like:  /model_exp/model_name/task_name/2021-09-28_13-47-26
         pth_path = Path(cfg.dataset.model_exp)
-        pth_path = pth_path / cfg.model.model_name / cfg.dataset.task_name / time.strftime("%Y-%m-%d_%H-%M-%S", local_time)
+        pth_path = pth_path / cfg.dataset.task_name / cfg.model.model_name / time.strftime("%Y-%m-%d_%H-%M-%S", local_time)
         cfg.LOG_DIR = str(pth_path)
     else:
         # create folder via LOG_DIR

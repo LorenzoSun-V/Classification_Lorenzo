@@ -1,5 +1,5 @@
 SEED: 666 # random seed for reproduce results
-DEVICE_IDS: '0'
+DEVICE_IDS: '5'
 USE_DDP: False
 LOG_DIR: ""
 RELOAD_PTH: ~
@@ -15,11 +15,11 @@ dataset:
 
 aug:
     is_aug: True
-    SCALE: 1.125
-    HW: [150, 150]
+    SCALE: [0.8, 1.2]
+    HW: [256, 128]
     HFLIP: True
-    COLOR_JITTER: True
-    ROTATE: 10  # [0, ROTATE) Random Rotate
+    COLOR_JITTER: 0.2
+    ROTATE: 10
     CROP: True
 
 model:
@@ -28,7 +28,7 @@ model:
     pretrained_model_url: ""
     last_channels: 1280
     num_classes: 6
-    bn: 'bn'
+    bn: 'syncbn'
     loss: 'focal'
 
 ddp:
@@ -44,6 +44,7 @@ train:
     optim: 'sgd'
     base_lr: 0.1
     # base_lr: 0.03
+    use_balanced_weights: False
     warmup_cosdecay: 10  # epoch of warm up
     total_epochs: 120
     batch_size: 256
@@ -54,6 +55,6 @@ train:
 
 test:
     test_dir : "../datasets/intel/seg_test/"
-    model_path: "../model_exp/mobilenet_v2/intel/2021-10-26_14-39-05/model_best_acc.pth"
+    model_path: "../model_exp/intel/mobilenet_v2/2021-11-29_18-15-58/model_best_acc.pth"
     gpu: '4'
     batch_size: 128
